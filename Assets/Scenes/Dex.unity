@@ -1304,6 +1304,7 @@ MonoBehaviour:
   - {fileID: 886386042}
   - {fileID: 1267011869}
   abilityPanel: {fileID: 1016576148}
+  moveButtons: []
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0

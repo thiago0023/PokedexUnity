@@ -29,6 +29,7 @@ public class Pokemon
     [Header("Abilities")]
     public List<Abilities> abilities;
     
+    public bool Loaded = false;
     
 }
 

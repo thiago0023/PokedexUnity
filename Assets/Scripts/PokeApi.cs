@@ -25,7 +25,7 @@ public class PokeApi : MonoBehaviour
     private bool imageReady = false, descReady = false;
     public List<Pokemon> pokemon;
 
-    public int currentPoke;
+    public int currentPoke = 0;
     public const string  apiLink = "https://pokeapi.co/api/v2/pokemon/";
     public const string infoLink = "https://pokeapi.co/api/v2/pokemon-species/";
 
@@ -38,6 +38,8 @@ public class PokeApi : MonoBehaviour
 
     public GameObject abilityPanel;
 
+    public Button[] moveButtons;
+
 
     private void Start() {
         
@@ -46,7 +48,7 @@ public class PokeApi : MonoBehaviour
     }
 
     public IEnumerator GetAllPokemon(){
-        UnityWebRequest webRequest = UnityWebRequest.Get(apiLink + "?limit=904");
+        UnityWebRequest webRequest = UnityWebRequest.Get(apiLink + "?limit=807");
         yield return webRequest.SendWebRequest();
 
         if(webRequest.isNetworkError){
@@ -60,9 +62,10 @@ public class PokeApi : MonoBehaviour
     }
     
     public IEnumerator GetPokemon(Pokemon poke){
+        OnOffButton(false);
         imageReady = false;
         descReady = false;
-
+        
         UnityWebRequest webRequest = UnityWebRequest.Get(poke.url);
         yield return webRequest.SendWebRequest();
         if(webRequest.isNetworkError){
@@ -72,8 +75,14 @@ public class PokeApi : MonoBehaviour
             JsonUtility.FromJsonOverwrite(webRequest.downloadHandler.text, poke);
             StartCoroutine(URLtoTexture(poke));
             StartCoroutine(GetDescription(poke));
-            currentPoke = poke.id -1;
+            
+            
             yield return new WaitUntil(() => imageReady && descReady);
+            
+            poke.Loaded = true;
+        
+    
+            
             pokeName.text = poke.name;
             pokeNumber.text = ShowPokeNumber(poke.id);
             ShowType(poke);
@@ -81,10 +90,11 @@ public class PokeApi : MonoBehaviour
             DrawAbilities();
             pokeSprite.sprite = poke.icon;
             pokeSprite.gameObject.SetActive(true);
-            PokeDescription.text = poke.info.flavor_text_entries.First().flavor_text;
+            string desc = poke.info.flavor_text_entries[1].flavor_text.Replace('\n', ' ');
+            PokeDescription.text = desc;
 
+            OnOffButton(true);
         }
-        
 
         
     }
@@ -122,7 +132,6 @@ public class PokeApi : MonoBehaviour
         int count = 0;
         Sprite typeIcon = null;
         foreach(Types type in poke.types){
-            Debug.Log(type.type.name);
             switch(type.type.name){
                case "bug":
                 {
@@ -244,11 +253,30 @@ public class PokeApi : MonoBehaviour
     }
 
     public void NextPokemon(){
-        DrawDex(pokemon[currentPoke + 1]);
+        if(currentPoke == pokemon.Count){
+            DrawDex(pokemon.First());
+            currentPoke = 0;
+        }
+        else{
+            currentPoke ++;
+            DrawDex(pokemon[currentPoke]);
+            
+        }
+        
     }
 
     public void BackPokemon(){
-        DrawDex(pokemon[currentPoke - 1]);
+        if(currentPoke == 0){
+            
+            DrawDex(pokemon.Last());
+            currentPoke = pokemon.Count;
+        }
+        
+        else{
+            currentPoke --;
+            DrawDex(pokemon[currentPoke]);
+        }
+        
     }
 
     public void HideTypeIcon(){
@@ -319,28 +347,39 @@ public class PokeApi : MonoBehaviour
     }
 #endregion
 
-void DrawAbilities(){
-    List<Abilities> abilities = pokemon[currentPoke].abilities;
-    for(int i = 0; i < abilityPanel.transform.childCount; i++){
-        abilityPanel.transform.GetChild(i).gameObject.SetActive(false);
-    }
-    for(int i = 0; i < abilities.Count; i++){
-        GameObject button = abilityPanel.transform.GetChild(i).gameObject;
-        button.transform.GetChild(0).GetComponent<TMP_Text>().text = abilities[i].ability.name;
-        if(abilities[i].is_hidden){
-            button.GetComponent<Image>().color = Color.gray;
-            button.transform.GetChild(0).GetComponent<TMP_Text>().color = Color.white;
+    void DrawAbilities(){
+        List<Abilities> abilities = pokemon[currentPoke].abilities;
+        for(int i = 0; i < abilityPanel.transform.childCount; i++){
+            abilityPanel.transform.GetChild(i).gameObject.SetActive(false);
         }
-        else{
-            button.GetComponent<Image>().color = Color.white;
-            button.transform.GetChild(0).GetComponent<TMP_Text>().color = Color.black;
+        for(int i = 0; i < abilities.Count; i++){
+            GameObject button = abilityPanel.transform.GetChild(i).gameObject;
+            string abiName = abilities[i].ability.name.Replace('-', ' ');
+            button.transform.GetChild(0).GetComponent<TMP_Text>().text = abiName;
+            if(abilities[i].is_hidden){
+                button.GetComponent<Image>().color = Color.gray;
+                button.transform.GetChild(0).GetComponent<TMP_Text>().color = Color.white;
+            }
+            else{
+                button.GetComponent<Image>().color = Color.white;
+                button.transform.GetChild(0).GetComponent<TMP_Text>().color = Color.black;
+            }
+            button.SetActive(true);
+
         }
-        button.SetActive(true);
-
     }
-}
 
-public void QuitApp(){
-    Application.Quit();
-}
+    public void QuitApp(){
+        Application.Quit();
+    }
+
+    void OnOffButton(bool state){
+        foreach (Button button in moveButtons)
+        {
+            button.interactable = state;
+        }
+    }
+
+    
+
 }
