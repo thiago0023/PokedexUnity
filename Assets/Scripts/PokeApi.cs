@@ -5,7 +5,7 @@ using UnityEngine.Networking;
 using System.Linq;
 using UnityEngine.UI;
 using TMPro;
-using System;
+
 
 public class PokeApi : MonoBehaviour
 {
@@ -90,7 +90,9 @@ public class PokeApi : MonoBehaviour
             DrawAbilities();
             pokeSprite.sprite = poke.icon;
             pokeSprite.gameObject.SetActive(true);
-            string desc = poke.info.flavor_text_entries[1].flavor_text.Replace('\n', ' ');
+            string desc = poke.info.flavor_text_entries[7].flavor_text.Replace('\n', ' ');
+            
+
             PokeDescription.text = desc;
 
             OnOffButton(true);
@@ -107,10 +109,17 @@ public class PokeApi : MonoBehaviour
         }
         else{
             poke.pokeIcon = ((DownloadHandlerTexture)texRequest.downloadHandler).texture;
-            poke.pokeIcon.filterMode = FilterMode.Point;
-            Sprite sprite = Sprite.Create(poke.pokeIcon, new Rect(0.0f, 0.0f, poke.pokeIcon.width, poke.pokeIcon.height), new Vector2(0.5f, 0.5f), 96f);
-            poke.icon = sprite;
-            imageReady = true;
+            if(poke.pokeIcon != null){
+                poke.pokeIcon.filterMode = FilterMode.Point;
+                Sprite sprite = Sprite.Create(poke.pokeIcon, new Rect(0.0f, 0.0f, poke.pokeIcon.width, poke.pokeIcon.height), new Vector2(0.5f, 0.5f), 96f);
+                poke.icon = sprite;
+                imageReady = true;
+            }
+            else{
+                poke.icon = null;
+                imageReady = true;
+            }
+            
         }
                 
     }
@@ -253,7 +262,7 @@ public class PokeApi : MonoBehaviour
     }
 
     public void NextPokemon(){
-        if(currentPoke == pokemon.Count){
+        if(currentPoke == pokemon.Count-1){
             DrawDex(pokemon.First());
             currentPoke = 0;
         }
@@ -266,10 +275,10 @@ public class PokeApi : MonoBehaviour
     }
 
     public void BackPokemon(){
-        if(currentPoke == 0){
+        if(currentPoke <= 0){
             
             DrawDex(pokemon.Last());
-            currentPoke = pokemon.Count;
+            currentPoke = pokemon.Count-1;
         }
         
         else{
