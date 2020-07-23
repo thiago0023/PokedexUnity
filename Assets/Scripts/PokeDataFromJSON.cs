@@ -19,6 +19,8 @@ public class PokeDataFromJSON : MonoBehaviour
     public GameObject Abilities, StatsBars;
     public Image sprite;
 
+    public TMP_Dropdown flavorDrop;
+
 
 
     public int currentPoke = 0;
@@ -44,8 +46,8 @@ public class PokeDataFromJSON : MonoBehaviour
         PokemonData poke = pokemon[currentPoke];
         Number.text = poke.id.ToString();
         Name.text = poke.N;
-        string t = poke.info.FTE[0].e.Replace("\n", "");
-        FlavorText.text = t;
+        DropdownFill(poke);
+        FlavorText.text = FixFlavor(poke.info.FTE[0].e);
         sprite.sprite = Resources.Load<Sprite>("Sprites/" + poke.N );
         sprite.gameObject.SetActive(true);
     }
@@ -74,5 +76,26 @@ public class PokeDataFromJSON : MonoBehaviour
             currentPoke = pokemon.Count - 1;
         }
         DrawDex();
+    }
+
+    public void DropdownFill(PokemonData poke){
+        var options = new List<string>();
+        foreach(FlavorText fte in poke.info.FTE)
+        {   
+            options.Add(fte.v);
+        }
+        flavorDrop.options.Clear();
+        flavorDrop.AddOptions(options);
+    }
+
+    public void DropChange(){
+        FlavorText.text = FixFlavor(pokemon[currentPoke].info.FTE[flavorDrop.value].e);
+    }
+
+    public string FixFlavor(string flavor){
+        flavor = flavor.Replace("\n", " ");
+        flavor = flavor.Replace("\u000c", " ");
+        
+        return flavor;
     }
 }
