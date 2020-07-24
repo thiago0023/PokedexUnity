@@ -5,15 +5,21 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.UI.Extensions;
+using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 
 
 public class PokeDataFromJSON : MonoBehaviour
 {
+    public static PokeDataFromJSON dex;
     public TextAsset pokemonData;
     public TextAsset DetailsData;
 
     public List<PokemonData> pokemon;
+
+    public GameObject DexList, CardPrefab, DexArea;
 
     public TMP_Text Number, Name, FlavorText;
     public GameObject Abilities, StatsBars, TypeBar;
@@ -21,11 +27,47 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public TMP_Dropdown flavorDrop;
 
+    public DexHandler handler;
+
+    public Scene dexListScene;
+
+    public Scrollbar scroll;
+
 
 
     public int currentPoke = 0;
+
+    
     
 
+    private void Awake()
+    {
+        Debug.Log("Started");
+        SceneManager.LoadScene("Loading", LoadSceneMode.Additive);
+        dex = this;
+        DontDestroyOnLoad(this.gameObject);
+        GetAllPokemon();
+        foreach (PokemonData poke in pokemon)
+        {
+            GameObject go = Instantiate(CardPrefab, transform.position, Quaternion.identity);
+            go.transform.SetParent(DexList.transform);
+            go.transform.localScale = Vector3.one;
+            string n = poke.id.ToString();
+            if(poke.id < 10){
+                n = "00" + n;
+            }
+            else if(poke.id < 100){
+                n = "0" + n;
+            }
+            go.transform.GetChild(0).GetComponent<TMP_Text>().text = n;
+            go.transform.GetChild(1).GetComponent<TMP_Text>().text = poke.N;
+            go.transform.GetChild(2).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/" + poke.N);
+            go.GetComponent<Button>().onClick.AddListener(() => LoadDexPage());
+        }
+        DexArea.AddComponent<UI_ScrollRectOcclusion>();
+        SceneManager.sceneLoaded += OnDexPageLoaded;
+        
+    }
     public void GetAllPokemon(){
         var data = (JObject)JsonConvert.DeserializeObject(pokemonData.text);
         var data2 = (JObject)JsonConvert.DeserializeObject(DetailsData.text);
@@ -54,12 +96,8 @@ public class PokeDataFromJSON : MonoBehaviour
         DrawAbilities(poke);
         ShowType(poke);
     }
-    private void Start()
-    {
-        GetAllPokemon();
-        DrawDex();
-        
-    }
+
+    
 
     public void Next(){
         if(currentPoke < pokemon.Count -1){
@@ -302,4 +340,38 @@ public class PokeDataFromJSON : MonoBehaviour
             TypeBar.transform.GetChild(i).gameObject.SetActive(false);
         }
     }
+
+    public void LoadDexPage(){
+        currentPoke = EventSystem.current.currentSelectedGameObject.transform.GetSiblingIndex();
+        dexListScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene("DexJSON", LoadSceneMode.Additive);
+    }
+
+    public void OnDexPageLoaded(Scene scene, LoadSceneMode mode){
+        if(scene.name == "DexJSON"){
+            GetUI();
+            DrawDex();
+        }
+    }
+
+    public void GetUI(){
+        handler = GameObject.Find("DexHandler").GetComponent<DexHandler>();
+        Name = handler.Name;
+        Number = handler.Number;
+        FlavorText = handler.FlavorText;
+        Abilities = handler.Abilities;
+        StatsBars = handler.StatsBars;
+        TypeBar = handler.TypeBar;
+        sprite = handler.sprite;
+        flavorDrop = handler.flavorDrop;
+        handler.Next.onClick.AddListener(()=> Next());
+        handler.Back.onClick.AddListener(()=> Back());
+        handler.Base.onClick.AddListener(()=> DrawBaseStats());
+        handler.Min.onClick.AddListener(()=> DrawMinStats());
+        handler.Max.onClick.AddListener(()=> DrawMaxStats());
+    }
+
+    
+    
+    
 }

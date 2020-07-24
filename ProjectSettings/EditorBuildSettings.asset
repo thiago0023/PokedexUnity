@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/DexList.unity
+    guid: fb373c1a5bd0ef34481bf1f00bcb15d6
+  - enabled: 1
+    path: Assets/Scenes/Loading.unity
+    guid: b27d0c946c0927a4f916d54721705737
+  - enabled: 1
+    path: Assets/Scenes/DexJSON.unity
+    guid: ebe3abba8e1304046ab5ef3f5914ee26
   m_configObjects: {}
