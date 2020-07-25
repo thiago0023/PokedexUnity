@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 
 public class queryDex : MonoBehaviour
@@ -14,6 +15,8 @@ public class queryDex : MonoBehaviour
     public GameObject ClickMask;
 
     public Fade ListFade;
+
+    public TMP_Dropdown filterDrop;
     public void OrderBy(int i){
         PokeDataFromJSON.dex.ClickMask.SetActive(true);
         
@@ -80,10 +83,35 @@ public class queryDex : MonoBehaviour
         
     }
 
+    public void FilterByType(int i){
+        if(filterDrop.value !=0){
+            var query = from poke in PokeDataFromJSON.dex.pokemon
+                    where poke.T.Exists(t => t.n==Enum.GetNames(typeof(TypeName))[filterDrop.value -1])
+                    select poke;
+        
+            PokeDataFromJSON.dex.DrawReorderedDex(query);
+        }
+        else{
+            PokeDataFromJSON.dex.DrawReorderedDex(PokeDataFromJSON.dex.pokemon);
+        }
+        
+    }
+
+    public void MountFilterDrop(){
+        
+        var options = new List<string>();
+        for(int i =0; i< Enum.GetValues(typeof(TypeName)).Length; i++){
+            options.Add(Enum.GetNames(typeof(TypeName))[i]);
+        }
+        filterDrop.AddOptions(options);
+    }
+
     
 }
 
 public enum Filter{
     AtoZ=0, ZtoA=1, NumberAsc=2, NumberDesc=3 
 }
+
+
 

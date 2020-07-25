@@ -63,6 +63,7 @@ public class PokeDataFromJSON : MonoBehaviour
         }
         DexArea.AddComponent<UI_ScrollRectOcclusion>();
         SceneManager.sceneLoaded += OnDexPageLoaded;
+        GetComponent<queryDex>().MountFilterDrop();
         
     }
     public void GetAllPokemon(){

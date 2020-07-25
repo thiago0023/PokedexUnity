@@ -11,4 +11,6 @@ public class RotatePokeball : MonoBehaviour
     {
         transform.Rotate(new Vector3(0,0,1) * speed * Time.deltaTime);
     }
+
+    
 }

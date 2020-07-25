@@ -45,3 +45,11 @@ public class FlavorText{
     public string v;
     public string e;
 }
+public enum TypeName{
+    bug=0, dark=1,dragon=2, electric=3,
+    steel=4, fairy=5,fighting=6, fire=7,
+    flying=8, water=9, ghost=10, grass=11,
+    ground=12, ice=13, normal=14,poison=15,psychic=16,
+    rock=17
+
+}
