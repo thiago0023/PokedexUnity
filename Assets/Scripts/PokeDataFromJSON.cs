@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.UI.Extensions;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
+using System.Linq;
 
 
 
@@ -31,7 +32,11 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public Scene dexListScene;
 
-    public Scrollbar scroll;
+    public ScrollRect scroll;
+
+    public RectTransform content;
+
+    public GameObject ClickMask;
 
 
 
@@ -42,6 +47,7 @@ public class PokeDataFromJSON : MonoBehaviour
 
     private void Awake()
     {
+        Input.multiTouchEnabled = false;
         Debug.Log("Started");
         SceneManager.LoadScene("Loading", LoadSceneMode.Additive);
         dex = this;
@@ -52,16 +58,7 @@ public class PokeDataFromJSON : MonoBehaviour
             GameObject go = Instantiate(CardPrefab, transform.position, Quaternion.identity);
             go.transform.SetParent(DexList.transform);
             go.transform.localScale = Vector3.one;
-            string n = poke.id.ToString();
-            if(poke.id < 10){
-                n = "00" + n;
-            }
-            else if(poke.id < 100){
-                n = "0" + n;
-            }
-            go.transform.GetChild(0).GetComponent<TMP_Text>().text = n;
-            go.transform.GetChild(1).GetComponent<TMP_Text>().text = poke.N;
-            go.transform.GetChild(2).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/" + poke.N);
+            DrawCard(go, poke);
             go.GetComponent<Button>().onClick.AddListener(() => LoadDexPage());
         }
         DexArea.AddComponent<UI_ScrollRectOcclusion>();
@@ -129,8 +126,10 @@ public class PokeDataFromJSON : MonoBehaviour
         flavorDrop.AddOptions(options);
     }
 
-    public void DropChange(){
-        FlavorText.text = FixFlavor(pokemon[currentPoke].info.FTE[flavorDrop.value].e);
+    public int DropChange(int i){
+        FlavorText.text = FixFlavor(pokemon[currentPoke].info.FTE[(int)i].e);
+        return i;
+        
     }
 
     public string FixFlavor(string flavor){
@@ -342,8 +341,8 @@ public class PokeDataFromJSON : MonoBehaviour
     }
 
     public void LoadDexPage(){
-        currentPoke = EventSystem.current.currentSelectedGameObject.transform.GetSiblingIndex();
-        dexListScene = SceneManager.GetActiveScene();
+        ClickMask.SetActive(true);
+        currentPoke = EventSystem.current.currentSelectedGameObject.GetComponent<CardIndex>().id - 1;
         SceneManager.LoadScene("DexJSON", LoadSceneMode.Additive);
     }
 
@@ -369,9 +368,50 @@ public class PokeDataFromJSON : MonoBehaviour
         handler.Base.onClick.AddListener(()=> DrawBaseStats());
         handler.Min.onClick.AddListener(()=> DrawMinStats());
         handler.Max.onClick.AddListener(()=> DrawMaxStats());
+        flavorDrop.onValueChanged.AddListener(delegate{DropChange(flavorDrop.value);});
     }
 
     
+    public void DrawReorderedDex(IEnumerable<PokemonData> query){
+        if(query.Count() != DexList.transform.childCount){
+            for(int i = 0; i < DexList.transform.childCount; i++){
+                DexList.transform.GetChild(i).gameObject.SetActive(false);
+            }
+            
+        }
+        int count = 0;
+        foreach(PokemonData poke in query){
+            DrawCard(DexList.transform.GetChild(count).gameObject, poke);
+            count ++;
+        }
+        
+    }
+
+    public void DrawCard(GameObject card, PokemonData poke){
+        string n = poke.id.ToString();
+        if(poke.id < 10){
+            n = "00" + n;
+        }
+        else if(poke.id < 100){
+            n = "0" + n;
+        }
+        card.GetComponent<CardIndex>().id = poke.id;
+        card.transform.GetChild(0).GetComponent<TMP_Text>().text = n;
+        card.transform.GetChild(1).GetComponent<TMP_Text>().text = poke.N;
+        card.transform.GetChild(2).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/" + poke.N);
+        card.SetActive(true);
+    }
     
-    
+
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape)){
+            if(SceneManager.sceneCount == 2){
+                handler.ReturnToDexList();
+            }
+            else{
+                Application.Quit();
+            }
+        }
+    }
 }

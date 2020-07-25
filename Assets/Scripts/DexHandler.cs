@@ -15,10 +15,27 @@ public class DexHandler : MonoBehaviour
     public TMP_Dropdown flavorDrop;
     public Button Next, Back, Base, Min, Max;
 
+    public Fade fade;
+
     public void QuitApp(){
         Application.Quit();
     }
     public void ReturnToDexList(){
-        SceneManager.UnloadSceneAsync("DexJSON");
+        StartCoroutine(ExitingScreen());
     }
+
+    IEnumerator ExitingScreen(){
+        
+        fade.FadeOut();
+        yield return new WaitUntil(()=> fade.fadedOut);
+        PokeDataFromJSON.dex.ClickMask.SetActive(false);
+        SceneManager.UnloadSceneAsync("DexJSON");
+        
+    }
+
+    private void Awake()
+    {
+        fade.FadeIn();
+    }
+
 }
