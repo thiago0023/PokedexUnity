@@ -59,7 +59,7 @@ public class LoadingScreen : MonoBehaviour
         //load.allowSceneActivation=false;
         yield return new WaitForSeconds(timeToLoad);
         Fade();
-        yield return new WaitUntil(()=>faded);
+        yield return new WaitUntil(()=>faded && PokeDataFromJSON.dex.fullyLoaded);
         SceneManager.UnloadSceneAsync("Loading");
         //load.allowSceneActivation=true;
 

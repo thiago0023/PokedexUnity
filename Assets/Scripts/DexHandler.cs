@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class DexHandler : MonoBehaviour
 {
+    
 
     public TMP_Text Number, Name, FlavorText;
     public GameObject Abilities, StatsBars, TypeBar;
@@ -35,7 +36,15 @@ public class DexHandler : MonoBehaviour
 
     private void Awake()
     {
+        StartCoroutine(Load());
+    }
+
+    IEnumerator Load(){
+        PokeDataFromJSON.dex.OnDexPageLoaded();
         fade.FadeIn();
+        yield return new WaitUntil(()=>fade.fadedIn);
+        fade.fadedIn = false;
+        
     }
 
 }

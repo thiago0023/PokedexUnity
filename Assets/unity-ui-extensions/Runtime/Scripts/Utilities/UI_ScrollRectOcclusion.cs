@@ -86,7 +86,7 @@ namespace UnityEngine.UI.Extensions
             }
         }
 
-        void DisableGridComponents()
+        public void DisableGridComponents()
         {
             if (_isVertical)
                 _disableMarginY = _scrollRect.GetComponent<RectTransform>().rect.height / 2 + items[0].sizeDelta.y;
@@ -139,11 +139,14 @@ namespace UnityEngine.UI.Extensions
                     {
                         if (_scrollRect.transform.InverseTransformPoint(items[i].position).y < -_disableMarginY || _scrollRect.transform.InverseTransformPoint(items[i].position).y > _disableMarginY)
                         {
+                            
                             items[i].gameObject.SetActive(false);
+                            
                         }
                         else
                         {
                             items[i].gameObject.SetActive(true);
+                            
                         }
                     }
 
@@ -152,10 +155,12 @@ namespace UnityEngine.UI.Extensions
                         if (_scrollRect.transform.InverseTransformPoint(items[i].position).x < -_disableMarginX || _scrollRect.transform.InverseTransformPoint(items[i].position).x > _disableMarginX)
                         {
                             items[i].gameObject.SetActive(false);
+                            
                         }
                         else
                         {
                             items[i].gameObject.SetActive(true);
+                            
                         }
                     }
                 }

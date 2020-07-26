@@ -38,12 +38,23 @@ public class TypeData
 [System.Serializable]
 public class PokeSpecieData{
     public List<FlavorText> FTE;
+    public List<Forms> varieties;
+
+    public string Gen;
+
+    public string G;
 }
 
 [System.Serializable]
 public class FlavorText{
     public string v;
     public string e;
+}
+
+[System.Serializable]
+public class Forms{
+    public int id;
+    public string n;
 }
 public enum TypeName{
     bug=0, dark=1,dragon=2, electric=3,

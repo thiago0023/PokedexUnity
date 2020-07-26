@@ -9,16 +9,19 @@ using UnityEngine.UI.Extensions;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System.Linq;
+using UnityEngine.Events;
 
 
 
 public class PokeDataFromJSON : MonoBehaviour
 {
+    public bool fullyLoaded = true;
     public static PokeDataFromJSON dex;
     public TextAsset pokemonData;
     public TextAsset DetailsData;
 
     public List<PokemonData> pokemon;
+    public List<PokeSpecieData> infoData;
 
     public GameObject DexList, CardPrefab, DexArea;
 
@@ -53,38 +56,55 @@ public class PokeDataFromJSON : MonoBehaviour
         dex = this;
         DontDestroyOnLoad(this.gameObject);
         GetAllPokemon();
-        foreach (PokemonData poke in pokemon)
+        
+        foreach (PokemonData poke in pokemon.GetRange(0,807))
         {
             GameObject go = Instantiate(CardPrefab, transform.position, Quaternion.identity);
-            go.transform.SetParent(DexList.transform);
-            go.transform.localScale = Vector3.one;
+            GetComponent<CardPooling>().AddToPool(go);
             DrawCard(go, poke);
             go.GetComponent<Button>().onClick.AddListener(() => LoadDexPage());
+            go.GetComponent<Mask>().showMaskGraphic = true;
+            
         }
-        DexArea.AddComponent<UI_ScrollRectOcclusion>();
-        SceneManager.sceneLoaded += OnDexPageLoaded;
+
+        DexArea.GetComponent<UI_ScrollRectOcclusion>().Init();   
+        
+        
         GetComponent<queryDex>().MountFilterDrop();
+        fullyLoaded=true;
         
     }
     public void GetAllPokemon(){
         var data = (JObject)JsonConvert.DeserializeObject(pokemonData.text);
         var data2 = (JObject)JsonConvert.DeserializeObject(DetailsData.text);
-        List<PokeSpecieData> infoData = new List<PokeSpecieData>();
-        for(int i = 0; i < 806; i++){
+        for(int i = 0; i < data2["pokemon-species"].ToList().Count; i++){
             infoData.Add(JsonUtility.FromJson<PokeSpecieData>(data2["pokemon-species"][i].ToString()));
         }
-        for(int i = 1; i < 807; i++){
+        Debug.Log(data["pokemon"].Count());
+        for(int i = 1; i < 808; i++){
             pokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
             pokemon[i-1].info = infoData[i-1];
         }
+        for(int i = 10001; i < 10158; i++){
+            pokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
+            //pokemon[i-1].info = infoData[i-1];
+        }
+
         infoData.Clear();        
 
     }
 
     public void DrawDex(){
         sprite.gameObject.SetActive(false);
-        PokemonData poke = pokemon[currentPoke];
-        Number.text = poke.id.ToString();
+        PokemonData poke = pokemon[DexList.transform.GetChild(currentPoke).GetComponent<CardIndex>().id - 1];
+        string n = poke.id.ToString();
+        if(poke.id < 10){
+            n = "00" + n;
+        }
+        else if(poke.id < 100){
+            n = "0" + n;
+        }
+        Number.text = n;
         Name.text = poke.N;
         DropdownFill(poke);
         FlavorText.text = FixFlavor(poke.info.FTE[0].e);
@@ -98,7 +118,7 @@ public class PokeDataFromJSON : MonoBehaviour
     
 
     public void Next(){
-        if(currentPoke < pokemon.Count -1){
+        if(currentPoke < DexList.transform.childCount -1){
             currentPoke++;
         }
         else{
@@ -112,7 +132,7 @@ public class PokeDataFromJSON : MonoBehaviour
             currentPoke--;
         }
         else{
-            currentPoke = pokemon.Count - 1;
+            currentPoke = DexList.transform.childCount - 1;
         }
         DrawDex();
     }
@@ -139,7 +159,7 @@ public class PokeDataFromJSON : MonoBehaviour
         
         return flavor;
     }
-
+#region Stats
     public void DrawBaseStats(){
         PokemonData poke = pokemon[currentPoke];
         for(int i = 0; i < 6; i++){
@@ -199,7 +219,7 @@ public class PokeDataFromJSON : MonoBehaviour
         StatsBars.transform.GetChild(i).GetChild(0).GetComponent<TMP_Text>().text = stat.ToString();
         StatsBars.transform.GetChild(i).GetComponent<Image>().fillAmount = stat/statMax;
     }
-
+#endregion 
     void DrawAbilities(PokemonData poke){
         List<AbilityData> abilityDatas = poke.Ab;
 
@@ -343,15 +363,20 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public void LoadDexPage(){
         ClickMask.SetActive(true);
-        currentPoke = EventSystem.current.currentSelectedGameObject.GetComponent<CardIndex>().id - 1;
-        SceneManager.LoadScene("DexJSON", LoadSceneMode.Additive);
+        currentPoke = EventSystem.current.currentSelectedGameObject.transform.GetSiblingIndex();
+        StartCoroutine(DexPage());
+    }
+    
+    IEnumerator DexPage(){
+        AsyncOperation load = SceneManager.LoadSceneAsync("DexJSON", LoadSceneMode.Additive);
+        yield return new WaitUntil(()=>load.isDone);
     }
 
-    public void OnDexPageLoaded(Scene scene, LoadSceneMode mode){
-        if(scene.name == "DexJSON"){
-            GetUI();
-            DrawDex();
-        }
+    public void OnDexPageLoaded(){
+        
+        GetUI();
+        DrawDex();
+        
     }
 
     public void GetUI(){
@@ -374,21 +399,50 @@ public class PokeDataFromJSON : MonoBehaviour
 
     
     public void DrawReorderedDex(IEnumerable<PokemonData> query){
-        if(query.Count() != DexList.transform.childCount){
-            for(int i = 0; i < DexList.transform.childCount; i++){
-                DexList.transform.GetChild(i).gameObject.SetActive(false);
+        Destroy(DexArea.GetComponent<UI_ScrollRectOcclusion>());
+        DexList.GetComponent<VerticalLayoutGroup>().enabled = true;
+        DexList.GetComponent<ContentSizeFitter>().enabled = true;
+        content.position = new Vector3(content.position.x,0, content.position.z);
+        
+        
+       
+        int cardsInList = DexList.transform.childCount;
+        if(query.Count() != cardsInList){
+           
+            for(int i = 0; i < cardsInList; i++){
+                GetComponent<CardPooling>().AddToPool(DexList.transform.GetChild(0).gameObject);
+                
+            }
+            foreach(PokemonData poke in query){
+                DrawCard(GetComponent<CardPooling>().InstantiateFromPool(), poke);
             }
             
         }
-        int count = 0;
-        foreach(PokemonData poke in query){
-            DrawCard(DexList.transform.GetChild(count).gameObject, poke);
-            count ++;
+        else{
+            int count = 0;
+            foreach(PokemonData poke in query){
+                DrawCard(dex.DexList.transform.GetChild(count).gameObject, poke);
+                count ++;
+            }
         }
+
+        
+     
+        DexArea.AddComponent<UI_ScrollRectOcclusion>();
+        Canvas.ForceUpdateCanvases();
         
     }
 
     public void DrawCard(GameObject card, PokemonData poke){
+        card.transform.SetParent(DexList.transform);
+        card.transform.localScale = Vector3.one;
+        DrawCardInfo(card, poke);
+        card.SetActive(true);
+        
+
+    }
+
+    public void DrawCardInfo(GameObject card, PokemonData poke){
         string n = poke.id.ToString();
         if(poke.id < 10){
             n = "00" + n;
@@ -397,10 +451,10 @@ public class PokeDataFromJSON : MonoBehaviour
             n = "0" + n;
         }
         card.GetComponent<CardIndex>().id = poke.id;
-        card.transform.GetChild(0).GetComponent<TMP_Text>().text = n;
-        card.transform.GetChild(1).GetComponent<TMP_Text>().text = poke.N;
-        card.transform.GetChild(2).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/" + poke.N);
-        card.SetActive(true);
+        card.GetComponent<CardIndex>().name = poke.N;
+        card.transform.GetChild(1).GetComponent<TMP_Text>().text = n;
+        card.transform.GetChild(2).GetComponent<TMP_Text>().text = poke.N;
+        card.transform.GetChild(3).GetComponent<Image>().sprite = Resources.Load<Sprite>("Sprites/" + poke.N);
     }
     
 
