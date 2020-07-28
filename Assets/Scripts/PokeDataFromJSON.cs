@@ -25,7 +25,7 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public GameObject DexList, CardPrefab, DexArea;
 
-    public TMP_Text Number, Name, FlavorText;
+    public TMP_Text Number, Name, FlavorText, Group;
     public GameObject Abilities, StatsBars, TypeBar;
     public Image sprite;
 
@@ -106,6 +106,7 @@ public class PokeDataFromJSON : MonoBehaviour
         }
         Number.text = n;
         Name.text = poke.N;
+        Group.text = poke.info.G;
         DropdownFill(poke);
         FlavorText.text = FixFlavor(poke.info.FTE[0].e);
         sprite.sprite = Resources.Load<Sprite>("Sprites/" + poke.N );
@@ -383,6 +384,7 @@ public class PokeDataFromJSON : MonoBehaviour
         handler = GameObject.Find("DexHandler").GetComponent<DexHandler>();
         Name = handler.Name;
         Number = handler.Number;
+        Group = handler.Group;
         FlavorText = handler.FlavorText;
         Abilities = handler.Abilities;
         StatsBars = handler.StatsBars;

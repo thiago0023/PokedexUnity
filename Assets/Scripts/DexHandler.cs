@@ -9,7 +9,7 @@ public class DexHandler : MonoBehaviour
 {
     
 
-    public TMP_Text Number, Name, FlavorText;
+    public TMP_Text Number, Name, FlavorText, Group;
     public GameObject Abilities, StatsBars, TypeBar;
     public Image sprite;
 
