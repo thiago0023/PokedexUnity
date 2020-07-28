@@ -45,6 +45,8 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public int currentPoke = 0;
 
+    public List<CardIndex> currentList;
+
     
     
 
@@ -64,6 +66,7 @@ public class PokeDataFromJSON : MonoBehaviour
             DrawCard(go, poke);
             go.GetComponent<Button>().onClick.AddListener(() => LoadDexPage());
             go.GetComponent<Mask>().showMaskGraphic = true;
+            currentList.Add(go.GetComponent<CardIndex>());
             
         }
 
@@ -71,6 +74,7 @@ public class PokeDataFromJSON : MonoBehaviour
         
         
         GetComponent<queryDex>().MountFilterDrop();
+        
         fullyLoaded=true;
         
     }
@@ -96,7 +100,7 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public void DrawDex(){
         sprite.gameObject.SetActive(false);
-        PokemonData poke = pokemon[DexList.transform.GetChild(currentPoke).GetComponent<CardIndex>().id - 1];
+        PokemonData poke = pokemon.Find(p => p.id == GetPokemonId(currentPoke));
         string n = poke.id.ToString();
         if(poke.id < 10){
             n = "00" + n;
@@ -116,10 +120,14 @@ public class PokeDataFromJSON : MonoBehaviour
         ShowType(poke);
     }
 
+    public List<CardIndex> GetCurrentList(){
+        return currentList;
+    }
+
     
 
     public void Next(){
-        if(currentPoke < DexList.transform.childCount -1){
+        if(currentPoke < GetCurrentList().Count -1){
             currentPoke++;
         }
         else{
@@ -133,7 +141,7 @@ public class PokeDataFromJSON : MonoBehaviour
             currentPoke--;
         }
         else{
-            currentPoke = DexList.transform.childCount - 1;
+            currentPoke = GetCurrentList().Count - 1;
         }
         DrawDex();
     }
@@ -149,7 +157,7 @@ public class PokeDataFromJSON : MonoBehaviour
     }
 
     public int DropChange(int i){
-        FlavorText.text = FixFlavor(pokemon[currentPoke].info.FTE[(int)i].e);
+        FlavorText.text = FixFlavor(pokemon[GetPokemonId(currentPoke) -1].info.FTE[(int)i].e);
         return i;
         
     }
@@ -160,9 +168,13 @@ public class PokeDataFromJSON : MonoBehaviour
         
         return flavor;
     }
+
+    public int GetPokemonId(int index){
+        return GetCurrentList()[index].id;
+    }
 #region Stats
     public void DrawBaseStats(){
-        PokemonData poke = pokemon[currentPoke];
+        PokemonData poke = pokemon[GetPokemonId(currentPoke)-1];
         for(int i = 0; i < 6; i++){
             float stat = poke.St[i].bs;
             DrawStats(stat, 200, i);
@@ -170,7 +182,7 @@ public class PokeDataFromJSON : MonoBehaviour
     }
 
     public void DrawMaxStats(){
-        PokemonData poke = pokemon[currentPoke];
+        PokemonData poke = pokemon[GetPokemonId(currentPoke)-1];
         for(int i = 0; i < 6; i++){
             float stat = 0;
             bool isHP = false;
@@ -186,7 +198,7 @@ public class PokeDataFromJSON : MonoBehaviour
     }
 
     public void DrawMinStats(){
-        PokemonData poke = pokemon[currentPoke];
+        PokemonData poke = pokemon[GetPokemonId(currentPoke)-1];
         for(int i = 0; i < 6; i++){
             float stat = 0;
             bool isHP = false;
@@ -364,7 +376,7 @@ public class PokeDataFromJSON : MonoBehaviour
 
     public void LoadDexPage(){
         ClickMask.SetActive(true);
-        currentPoke = EventSystem.current.currentSelectedGameObject.transform.GetSiblingIndex();
+        currentPoke = GetCurrentList().IndexOf(EventSystem.current.currentSelectedGameObject.GetComponent<CardIndex>());
         StartCoroutine(DexPage());
     }
     
@@ -405,7 +417,7 @@ public class PokeDataFromJSON : MonoBehaviour
         DexList.GetComponent<VerticalLayoutGroup>().enabled = true;
         DexList.GetComponent<ContentSizeFitter>().enabled = true;
         content.position = new Vector3(content.position.x,0, content.position.z);
-        
+        currentList.Clear();
         
        
         int cardsInList = DexList.transform.childCount;
@@ -438,6 +450,7 @@ public class PokeDataFromJSON : MonoBehaviour
     public void DrawCard(GameObject card, PokemonData poke){
         card.transform.SetParent(DexList.transform);
         card.transform.localScale = Vector3.one;
+        currentList.Add(card.GetComponent<CardIndex>());
         DrawCardInfo(card, poke);
         card.SetActive(true);
         

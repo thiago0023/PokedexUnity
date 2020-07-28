@@ -135,7 +135,7 @@ namespace UnityEngine.UI.Extensions
                 }
                 else
                 {
-                    if (_isVertical)
+                    if (_isVertical && items[i].GetComponent<CardIndex>().InUse)
                     {
                         if (_scrollRect.transform.InverseTransformPoint(items[i].position).y < -_disableMarginY || _scrollRect.transform.InverseTransformPoint(items[i].position).y > _disableMarginY)
                         {

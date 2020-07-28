@@ -117,6 +117,7 @@ public class queryDex : MonoBehaviour
         Destroy(area.GetComponent<UI_ScrollRectOcclusion>());
         list.GetComponent<VerticalLayoutGroup>().enabled = true;
         list.GetComponent<ContentSizeFitter>().enabled = true;
+        //Canvas.ForceUpdateCanvases();
         area.AddComponent<UI_ScrollRectOcclusion>();
         var content = PokeDataFromJSON.dex.content;
         content.position = new Vector3(content.position.x,0, content.position.z);

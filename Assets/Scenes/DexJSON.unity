@@ -6085,7 +6085,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Nome do Pokemon
+  m_text: GRUPO DO POKEMON
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7ad81a3c7924d2d4fa9b0e55b2373451, type: 2}
   m_sharedMaterial: {fileID: 2415615946979047115, guid: 7ad81a3c7924d2d4fa9b0e55b2373451,
@@ -6120,7 +6120,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 16
+  m_fontStyle: 0
   m_textAlignment: 514
   m_characterSpacing: 0
   m_wordSpacing: 0
@@ -6155,7 +6155,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 1552175868}
-    characterCount: 15
+    characterCount: 16
     spriteCount: 0
     spaceCount: 2
     wordCount: 3
