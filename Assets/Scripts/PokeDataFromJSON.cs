@@ -451,6 +451,7 @@ public class PokeDataFromJSON : MonoBehaviour
         card.transform.SetParent(DexList.transform);
         card.transform.localScale = Vector3.one;
         currentList.Add(card.GetComponent<CardIndex>());
+        card.GetComponent<CardIndex>().InUse = true;
         DrawCardInfo(card, poke);
         card.SetActive(true);
         
