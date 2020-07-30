@@ -17,10 +17,9 @@ public class PokeDataFromJSON : MonoBehaviour
 {
     public bool fullyLoaded = true;
     public static PokeDataFromJSON dex;
-    public TextAsset pokemonData;
-    public TextAsset DetailsData;
-
+    public TextAsset pokemonData, DetailsData, GalarData;
     public List<PokemonData> pokemon;
+    public GalarDex galar;
     public List<PokeSpecieData> infoData;
 
     public GameObject DexList, CardPrefab, DexArea;
@@ -59,14 +58,14 @@ public class PokeDataFromJSON : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
         GetAllPokemon();
         
-        foreach (PokemonData poke in pokemon.GetRange(0,807))
+        foreach (PokemonData poke in pokemon)
         {
             GameObject go = Instantiate(CardPrefab, transform.position, Quaternion.identity);
             GetComponent<CardPooling>().AddToPool(go);
             DrawCard(go, poke);
             go.GetComponent<Button>().onClick.AddListener(() => LoadDexPage());
             go.GetComponent<Mask>().showMaskGraphic = true;
-            currentList.Add(go.GetComponent<CardIndex>());
+            
             
         }
 
@@ -81,6 +80,7 @@ public class PokeDataFromJSON : MonoBehaviour
     public void GetAllPokemon(){
         var data = (JObject)JsonConvert.DeserializeObject(pokemonData.text);
         var data2 = (JObject)JsonConvert.DeserializeObject(DetailsData.text);
+        galar = JsonUtility.FromJson<GalarDex>(GalarData.text);
         for(int i = 0; i < data2["pokemon-species"].ToList().Count; i++){
             infoData.Add(JsonUtility.FromJson<PokeSpecieData>(data2["pokemon-species"][i].ToString()));
         }
@@ -89,13 +89,69 @@ public class PokeDataFromJSON : MonoBehaviour
             pokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
             pokemon[i-1].info = infoData[i-1];
         }
-        for(int i = 10001; i < 10158; i++){
+        ConvertGalarToNational(galar.pokedex);
+        galar.pokedex.Clear();
+        
+        
+        
+        /*for(int i = 10001; i < 10158; i++){
             pokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
             //pokemon[i-1].info = infoData[i-1];
         }
-
+        */
         infoData.Clear();        
 
+    }
+    public void ConvertGalarToNational(List<GalarPokemon> galardex){
+        foreach (GalarPokemon poke in galardex)
+        {
+            PokemonData data = new PokemonData();
+            data.id = poke.id;
+            data.N = poke.name.ToLower();
+            List<StatsData> stats = new List<StatsData>();
+            foreach(int stat in poke.base_stats){
+                StatsData statdata = new StatsData();
+                statdata.bs = stat;
+                stats.Add(statdata);
+            }
+            data.St = stats;
+            List<AbilityData> abs = new List<AbilityData>();
+            foreach (string ab in poke.abilities)
+            {
+                if(!abs.Exists(a => a.n == ab)){
+                    AbilityData a = new AbilityData();
+                    a.n = ab;
+                    if(ab == poke.abilities.Last()){
+                        a.isH = true;
+                    }
+                    else{
+                        a.isH = false;
+                    }
+                    abs.Add(a);
+                }
+                
+            }
+            data.Ab = abs;
+            List<TypeData> types = new List<TypeData>();
+            for(int i =0; i < poke.types.Count();i++){
+                TypeData t = new TypeData();
+                t.n = poke.types[i];
+                t.n = t.n.ToLower();
+                types.Add(t);
+            }
+            data.T = types;
+            PokeSpecieData info = new PokeSpecieData();
+            FlavorText fte = new FlavorText();
+            List<FlavorText> ftes = new List<FlavorText>();
+            fte.v = "SW/SH";
+            fte.e = poke.description;
+            ftes.Add(fte);
+            info.FTE = ftes;
+            data.info = info;
+            pokemon.Add(data);
+
+        }
+        
     }
 
     public void DrawDex(){

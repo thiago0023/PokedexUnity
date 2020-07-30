@@ -33,6 +33,8 @@ public class queryDex : MonoBehaviour
             query.Add(child.GetComponent<CardIndex>());
         }
         
+        
+        
         switch (i)
         {   
             case (int)Filter.AtoZ:
@@ -73,6 +75,9 @@ public class queryDex : MonoBehaviour
             
                 
         }
+        var content = PokeDataFromJSON.dex.content;
+        content.position = new Vector3(content.position.x,0, content.position.z);
+        
     }
    
     IEnumerator SortWithFade(int i){
@@ -114,13 +119,11 @@ public class queryDex : MonoBehaviour
     public void FixList(){
         var list = PokeDataFromJSON.dex.DexList;
         var area = PokeDataFromJSON.dex.DexArea;
-        Destroy(area.GetComponent<UI_ScrollRectOcclusion>());
+        area.GetComponent<UI_ScrollRectOcclusion>().DestroySelf();
         list.GetComponent<VerticalLayoutGroup>().enabled = true;
         list.GetComponent<ContentSizeFitter>().enabled = true;
         //Canvas.ForceUpdateCanvases();
         area.AddComponent<UI_ScrollRectOcclusion>();
-        var content = PokeDataFromJSON.dex.content;
-        content.position = new Vector3(content.position.x,0, content.position.z);
         Canvas.ForceUpdateCanvases();
 
     }
@@ -130,7 +133,7 @@ public class queryDex : MonoBehaviour
         yield return new WaitUntil(()=>ListFade.fadedOut);
         yield return null;
         if(filterDrop.value !=0){
-            var query = from poke in PokeDataFromJSON.dex.pokemon.GetRange(0,807)
+            var query = from poke in PokeDataFromJSON.dex.pokemon
                         where poke.T.Exists(t => t.n==Enum.GetNames(typeof(TypeName))[filterDrop.value -1])
                         select poke;
         

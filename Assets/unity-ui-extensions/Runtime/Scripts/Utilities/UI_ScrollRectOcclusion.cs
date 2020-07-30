@@ -113,6 +113,10 @@ namespace UnityEngine.UI.Extensions
             hasDisabledGridComponents = true;
         }
 
+    public void DestroySelf(){
+        Destroy(this);
+    }
+
         public void OnScroll(Vector2 pos)
         {
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 [System.Serializable]
 public class PokemonData
@@ -13,6 +14,22 @@ public class PokemonData
     public List<TypeData> T;
 
     public PokeSpecieData info;
+}
+
+[System.Serializable]
+public class GalarDex{
+    public List<GalarPokemon> pokedex;
+}
+[System.Serializable]
+public class GalarPokemon{
+    public int id;
+    public string name;
+    public List<int> base_stats;
+    public List<string> abilities;
+    public List<string> types;
+    public string description;
+
+    
 }
 
 [System.Serializable]
