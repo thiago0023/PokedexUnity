@@ -17,8 +17,10 @@ public class PokeDataFromJSON : MonoBehaviour
 {
     public bool fullyLoaded = true;
     public static PokeDataFromJSON dex;
-    public TextAsset pokemonData, DetailsData, GalarData;
+    public TextAsset pokemonData, DetailsData, GalarData, AbData;
     public List<PokemonData> pokemon;
+    public List<PokemonData> formPokemon;
+    public AbEffect AbilityList;
     public GalarDex galar;
     public List<PokeSpecieData> infoData;
 
@@ -94,11 +96,12 @@ public class PokeDataFromJSON : MonoBehaviour
         
         
         
-        /*for(int i = 10001; i < 10158; i++){
-            pokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
+        for(int i = 10001; i < 10158; i++){
+            formPokemon.Add(JsonUtility.FromJson<PokemonData>(data["pokemon"][i.ToString()].ToString()));
             //pokemon[i-1].info = infoData[i-1];
         }
-        */
+        
+        AbilityList = JsonUtility.FromJson<AbEffect>(AbData.text);
         infoData.Clear();        
 
     }
@@ -185,10 +188,12 @@ public class PokeDataFromJSON : MonoBehaviour
     public void Next(){
         if(currentPoke < GetCurrentList().Count -1){
             currentPoke++;
+            
         }
         else{
             currentPoke = 0;
         }
+        handler.abPanel.gameObject.SetActive(false);
         DrawDex();
     }
 
@@ -199,6 +204,7 @@ public class PokeDataFromJSON : MonoBehaviour
         else{
             currentPoke = GetCurrentList().Count - 1;
         }
+        handler.abPanel.gameObject.SetActive(false);
         DrawDex();
     }
 
@@ -284,12 +290,12 @@ public class PokeDataFromJSON : MonoBehaviour
         return stat;
     }
 
-    void DrawStats(float stat, float statMax, int i){
+    public void DrawStats(float stat, float statMax, int i){
         StatsBars.transform.GetChild(i).GetChild(0).GetComponent<TMP_Text>().text = stat.ToString();
         StatsBars.transform.GetChild(i).GetComponent<Image>().fillAmount = stat/statMax;
     }
 #endregion 
-    void DrawAbilities(PokemonData poke){
+    public void DrawAbilities(PokemonData poke){
         List<AbilityData> abilityDatas = poke.Ab;
 
         for(int i = 0; i < Abilities.transform.childCount; i++){
@@ -299,6 +305,8 @@ public class PokeDataFromJSON : MonoBehaviour
         for(int i = 0; i < poke.Ab.Count; i ++){
             GameObject button = Abilities.transform.GetChild(i).gameObject;
             AbilityData ab = poke.Ab[i];
+            button.GetComponent<AbilityInfo>().abinfo = ab;
+            button.GetComponent<Button>().onClick.AddListener(()=> button.GetComponent<AbilityInfo>().GetAbilityInfo());
             TMP_Text abName = button.transform.GetChild(0).GetComponent<TMP_Text>();
             if(ab.isH){
                 button.GetComponent<Image>().color = Color.gray;
@@ -308,7 +316,7 @@ public class PokeDataFromJSON : MonoBehaviour
                 button.GetComponent<Image>().color = Color.white;
                 abName.color = Color.black;
             }
-            abName.text = ab.n;
+            abName.text = ab.n.Replace("-"," ");
             button.SetActive(true);
 
         }
@@ -424,7 +432,7 @@ public class PokeDataFromJSON : MonoBehaviour
         
     }
 
-    void HideTypeIcon(){
+    public void HideTypeIcon(){
         for(int i = 0; i < TypeBar.transform.childCount; i++){
             TypeBar.transform.GetChild(i).gameObject.SetActive(false);
         }

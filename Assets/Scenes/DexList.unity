@@ -595,7 +595,11 @@ MonoBehaviour:
   pokemonData: {fileID: 4900000, guid: e1af58cce1232f748bbcbdc93109ed51, type: 3}
   DetailsData: {fileID: 4900000, guid: 1cd7a53e40b9cf44dbe5a0e262d8762f, type: 3}
   GalarData: {fileID: 4900000, guid: 7eb8cf90fd39b304db11129f8681d23f, type: 3}
+  AbData: {fileID: 4900000, guid: bc3e48c173a47a847846aee01e06944c, type: 3}
   pokemon: []
+  formPokemon: []
+  AbilityList:
+    abilities: []
   galar:
     pokedex: []
   infoData: []
